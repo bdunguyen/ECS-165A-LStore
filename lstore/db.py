@@ -1,10 +1,13 @@
 from lstore.table import Table
+from lstore.bufferpool import BufferPool
+
+BUFFER_POOL_SIZE = 16
 
 class Database():
 
     def __init__(self):
-        self.tables = []
-        pass
+        self.tables = {}
+        self.bufferpool = BufferPool(self)
 
     # Not required for milestone1
     def open(self, path):
