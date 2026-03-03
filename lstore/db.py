@@ -23,7 +23,7 @@ class Database():
     :param key: int             #Index of table key in columns
     """
     def create_table(self, name, num_columns, key_index):
-        table = Table(name, num_columns, key_index)
+        table = Table(name, num_columns, key_index, self)
         return table
 
     

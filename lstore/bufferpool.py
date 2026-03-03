@@ -18,7 +18,13 @@ class BufferPool:
     Retreives Page
     look in pool, given page_id. If not there, evict if needed & retrieve from disk.
     '''
-    def get(self):
+    def get(self, page_id: str):
+        pass
+
+    '''
+    Puts a page in the pool
+    '''
+    def put(self, page: Page, dirty_bit: bool):
         pass
 
     '''
@@ -28,6 +34,9 @@ class BufferPool:
     def evict(self):
         pass
 
+    '''
+    Writes page to disk.
+    '''
     def write_to_disk(self):
         pass
     

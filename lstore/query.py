@@ -1,6 +1,9 @@
 from lstore.table import Table, Record
 from lstore.index import Index
+from lstore.table import RID
+from lstore.page import Page, NUM_SLOTS
 
+PAGE_RANGE = 1000
 
 class Query:
     """
@@ -11,8 +14,6 @@ class Query:
     """
     def __init__(self, table):
         self.table = table
-        pass
-
     
     """
     # internal Method
@@ -111,3 +112,45 @@ class Query:
             u = self.update(key, *updated_columns)
             return u
         return False
+
+    def assignRID(self, type: str, columns) -> RID: # find the next available space to add data for a whole record
+        primary_key = columns[self.table.key]
+        page_range = primary_key // PAGE_RANGE
+
+        # base or tail page directory
+        if type == 'b':
+            pgrange_dict = self.table.b_pages_dir[page_range]
+        elif type == 't':
+            pgrange_dict = self.table.t_pages_dir[page_range]
+
+        for cols in pgrange_dict.keys(): # col1, col2,... for each col in this page range
+            # we need to look for the next available space
+            pages: list[str] = pgrange_dict[cols] # page list for a col
+            pg_no: int = len(pages) - 1
+
+            page_id: str = pages[pg_no]
+
+            page: Page = self.table.database.bufferpool.get(page_id)
+
+            pg_rec_no: int = page.num_records # gives us the number of records at the last page
+
+            if pg_rec_no >= NUM_SLOTS:
+                # if we don't have anymore space, we create a new page in that directory
+                # but first ! we have to check the length
+                # TODO: Handle merge
+                if type == 't' and len(pgrange_dict[cols]) % self.table.merge_threshold_pages == 0:
+                    self.table._merge(page_range)
+
+                # new page
+                new_page = Page()
+
+                pg_no = len(pages) - 1
+
+                # place it into bufferpool
+                new_page_id = new_page.create_page_id(self.table.name, page_range, pg_no, cols)
+                self.table.database.bufferpool.put(new_page, dirty_bit = True)
+
+                pgrange_dict[cols].append(new_page_id)
+        
+        rid = RID(page_range, pg_no, pages[pg_no].curr // pages[pg_no].length)
+        return rid # return the RID object

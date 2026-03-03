@@ -29,16 +29,18 @@ class Table:
     :param num_columns: int     #Number of Columns: all columns are integer
     :param key: int             #Index of table key in columns
     """
-    def __init__(self, name, num_columns, key):
-        self.name = name
-        self.key = key
-        self.num_columns = num_columns
+    def __init__(self, name, num_columns, key, database):
+        self.name: str = name
+        self.key: int = key
+        self.num_columns: int = num_columns
 
-        self.base_page_directory = defaultdict(lambda: [str for _ in range(num_columns)])
-        self.tail_page_directory = defaultdict(lambda: [str for _ in range(num_columns)])
+        self.base_page_directory: dict = defaultdict(lambda: [str for _ in range(num_columns)])
+        self.tail_page_directory: dict = defaultdict(lambda: [str for _ in range(num_columns)])
 
-        self.index = Index(self)
-        self.merge_threshold_pages = 50  # The threshold to trigger a merge
+        self.index: Index = Index(self)
+        self.merge_threshold_pages: int = 50  # The threshold to trigger a merge
+
+        self.database = database # back-pointer to parent database so we can use bufferpool
 
     def __merge(self):
         print("merge is happening")
